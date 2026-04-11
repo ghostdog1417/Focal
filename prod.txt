@@ -1,0 +1,18 @@
+If your question is still about what to change for proper signed APK, change these exact fields:
+
+File: key.properties:-
+1. storePassword: change to your real password
+2. keyPassword: change to your real password
+3. k yAlias: keep as upload (or your alias)
+4. storeFile: path to your keystore, currently ../upload-keystore.jks
+
+File: build.gradle.kts:-
+1. Already wired correctly to read key.properties
+2. No further change needed unless you move/rename keystore
+
+File: android\upload-keystore.jks:-
+1. Replace this keystore if you want your own production key
+2. If you replace it, keep alias/passwords aligned with key.properties
+
+Then build again:
+flutter build apk --release

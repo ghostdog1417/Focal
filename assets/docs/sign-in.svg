@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eaf1ff"/>
+      <stop offset="100%" stop-color="#f8f9fb"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b8def"/>
+      <stop offset="100%" stop-color="#6c9cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <rect x="440" y="90" width="520" height="720" rx="28" fill="#ffffff" stroke="#dde6f7" stroke-width="2"/>
+  <circle cx="700" cy="195" r="42" fill="url(#logo)"/>
+  <circle cx="700" cy="195" r="26" fill="#ffffff"/>
+  <path d="M684 198 L698 212 L720 184" fill="none" stroke="#4c74da" stroke-width="4" stroke-linecap="round"/>
+  <text x="700" y="274" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#1c1c1e">Welcome back</text>
+  <text x="700" y="313" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" fill="#6b7280">Sign in with Google to continue your study flow.</text>
+  <rect x="510" y="360" width="380" height="66" rx="12" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="540" y="401" font-family="Arial, sans-serif" font-size="20" fill="#8892a0">Email</text>
+  <rect x="510" y="446" width="380" height="66" rx="12" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="540" y="487" font-family="Arial, sans-serif" font-size="20" fill="#8892a0">Password</text>
+  <rect x="510" y="536" width="380" height="60" rx="12" fill="#5b8def"/>
+  <text x="700" y="575" text-anchor="middle" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#ffffff">Sign in with Email</text>
+  <text x="700" y="628" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#5b8def">New user? Create account</text>
+  <line x1="510" y1="666" x2="665" y2="666" stroke="#e5e7eb"/>
+  <line x1="735" y1="666" x2="890" y2="666" stroke="#e5e7eb"/>
+  <text x="700" y="672" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#6b7280">or</text>
+  <rect x="510" y="694" width="380" height="60" rx="12" fill="#5b8def"/>
+  <text x="700" y="733" text-anchor="middle" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#ffffff">Continue with Google</text>
+</svg>

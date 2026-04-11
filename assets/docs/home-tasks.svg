@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f9fb"/>
+      <stop offset="100%" stop-color="#eef3ff"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eaf1ff"/>
+      <stop offset="100%" stop-color="#f3f7ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <rect x="350" y="40" width="700" height="820" rx="26" fill="#f8f9fb" stroke="#dde6f7"/>
+  <text x="410" y="105" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#1c1c1e">Today</text>
+  <rect x="410" y="130" width="580" height="185" rx="18" fill="url(#card)" stroke="#d8e3fa"/>
+  <text x="440" y="182" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#1c1c1e">Hello, Srijan</text>
+  <text x="440" y="218" font-family="Arial, sans-serif" font-size="21" fill="#6b7280">Let's focus today</text>
+  <rect x="870" y="162" width="90" height="44" rx="12" fill="#ffe49e"/>
+  <text x="915" y="191" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#1c1c1e">3</text>
+  <text x="440" y="256" font-family="Arial, sans-serif" font-size="18" fill="#6b7280">Daily Progress</text>
+  <text x="440" y="288" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#1c1c1e">2/4 completed</text>
+  <rect x="440" y="296" width="510" height="12" rx="6" fill="#dce4f4"/>
+  <rect x="440" y="296" width="255" height="12" rx="6" fill="#5b8def"/>
+  <text x="410" y="370" font-family="Arial, sans-serif" font-size="29" font-weight="700" fill="#1c1c1e">Tasks</text>
+  <text x="890" y="370" font-family="Arial, sans-serif" font-size="20" fill="#6b7280">2 pending</text>
+
+  <rect x="410" y="392" width="580" height="115" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="434" y="430" width="24" height="24" rx="6" fill="none" stroke="#5b8def" stroke-width="2"/>
+  <text x="478" y="435" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#1c1c1e">Read chapter 5</text>
+  <text x="478" y="466" font-family="Arial, sans-serif" font-size="17" fill="#6b7280">Prepare summary notes for tomorrow class</text>
+  <rect x="912" y="426" width="36" height="32" rx="8" fill="#eaf1ff"/>
+  <text x="930" y="447" text-anchor="middle" font-family="Arial, sans-serif" font-size="18">📚</text>
+
+  <rect x="410" y="525" width="580" height="115" rx="16" fill="#f2fbf3" stroke="#cbe8cf"/>
+  <rect x="434" y="563" width="24" height="24" rx="6" fill="#4caf50"/>
+  <path d="M440 575 L445 580 L452 571" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <text x="478" y="568" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#6b7280" text-decoration="line-through">Submit assignment</text>
+  <text x="478" y="598" font-family="Arial, sans-serif" font-size="17" fill="#6b7280">Upload PDF before 6:00 PM</text>
+  <rect x="478" y="607" width="102" height="24" rx="12" fill="#dff2e0"/>
+  <text x="529" y="624" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#2d7a31">Completed</text>
+  <rect x="912" y="559" width="36" height="32" rx="8" fill="#ffe8c8"/>
+  <text x="930" y="580" text-anchor="middle" font-family="Arial, sans-serif" font-size="18">📝</text>
+
+  <circle cx="952" cy="772" r="34" fill="#5b8def"/>
+  <text x="952" y="782" text-anchor="middle" font-family="Arial, sans-serif" font-size="39" fill="#ffffff">+</text>
+</svg>
