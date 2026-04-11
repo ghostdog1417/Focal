@@ -26,23 +26,33 @@ class DefaultFirebaseOptions {
     );
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAjhdmfJnxr9gXjQ1gVdHQMLGcjukKnsG4',
-    appId: '1:130963591290:web:277d9645ae54d43583ebc3',
-    messagingSenderId: '130963591290',
-    projectId: 'focusnest-39d13',
-    authDomain: 'focusnest-39d13.firebaseapp.com',
-    storageBucket: 'focusnest-39d13.firebasestorage.app',
-    measurementId: 'G-C4BNFSBRC2',
-  );
+  static FirebaseOptions get web {
+    const apiKey = String.fromEnvironment('FIREBASE_WEB_API_KEY');
+    assert(apiKey.isNotEmpty,
+        'FIREBASE_WEB_API_KEY must be provided via --dart-define=FIREBASE_WEB_API_KEY=<value>');
+    return const FirebaseOptions(
+      apiKey: apiKey,
+      appId: '1:130963591290:web:277d9645ae54d43583ebc3',
+      messagingSenderId: '130963591290',
+      projectId: 'focusnest-39d13',
+      authDomain: 'focusnest-39d13.firebaseapp.com',
+      storageBucket: 'focusnest-39d13.firebasestorage.app',
+      measurementId: 'G-C4BNFSBRC2',
+    );
+  }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCI9Pb0DfhWvMicwO9pwWb7JNSVjzFauag',
-    appId: '1:130963591290:android:229b01ebd1dd29a683ebc3',
-    messagingSenderId: '130963591290',
-    projectId: 'focusnest-39d13',
-    storageBucket: 'focusnest-39d13.firebasestorage.app',
-  );
+  static FirebaseOptions get android {
+    const apiKey = String.fromEnvironment('FIREBASE_ANDROID_API_KEY');
+    assert(apiKey.isNotEmpty,
+        'FIREBASE_ANDROID_API_KEY must be provided via --dart-define=FIREBASE_ANDROID_API_KEY=<value>');
+    return const FirebaseOptions(
+      apiKey: apiKey,
+      appId: '1:130963591290:android:229b01ebd1dd29a683ebc3',
+      messagingSenderId: '130963591290',
+      projectId: 'focusnest-39d13',
+      storageBucket: 'focusnest-39d13.firebasestorage.app',
+    );
+  }
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'YOUR_IOS_API_KEY',
