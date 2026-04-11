@@ -30,7 +30,7 @@ class DefaultFirebaseOptions {
     const apiKey = String.fromEnvironment('FIREBASE_WEB_API_KEY');
     assert(apiKey.isNotEmpty,
         'FIREBASE_WEB_API_KEY must be provided via --dart-define=FIREBASE_WEB_API_KEY=<value>');
-    return const FirebaseOptions(
+    return FirebaseOptions(
       apiKey: apiKey,
       appId: '1:130963591290:web:277d9645ae54d43583ebc3',
       messagingSenderId: '130963591290',
@@ -45,7 +45,7 @@ class DefaultFirebaseOptions {
     const apiKey = String.fromEnvironment('FIREBASE_ANDROID_API_KEY');
     assert(apiKey.isNotEmpty,
         'FIREBASE_ANDROID_API_KEY must be provided via --dart-define=FIREBASE_ANDROID_API_KEY=<value>');
-    return const FirebaseOptions(
+    return FirebaseOptions(
       apiKey: apiKey,
       appId: '1:130963591290:android:229b01ebd1dd29a683ebc3',
       messagingSenderId: '130963591290',
