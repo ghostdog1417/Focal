@@ -1,4 +1,4 @@
-package com.example.study_buddy
+package com.focusnest
 
 import io.flutter.embedding.android.FlutterActivity
 

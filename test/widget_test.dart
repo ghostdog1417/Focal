@@ -4,16 +4,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:study_buddy/main.dart';
 
 void main() {
-  testWidgets('StudyBuddy splash screen shows expected text', (WidgetTester tester) async {
+  testWidgets('FocusNest splash screen shows expected text', (WidgetTester tester) async {
     await tester.pumpWidget(const StudyBuddyApp());
 
-    expect(find.text('StudyBuddy'), findsOneWidget);
+    // Pump enough time for the async initialization to complete (500ms should be enough)
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Verify splash screen texts appear
+    expect(find.text('FocusNest'), findsOneWidget);
     expect(find.text('Smart Task & Study Tracker'), findsOneWidget);
 
-    // Advance time so the splash delay finishes and no pending timer remains.
-    await tester.pump(const Duration(seconds: 3));
-
-    // Dispose the app tree before test end.
-    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: SizedBox())));
+    // Close the app tree to clean up properly
+    await tester.pumpWidget(const SizedBox());
   });
 }

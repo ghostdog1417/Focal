@@ -7,6 +7,8 @@ import '../models/task.dart';
 class StorageService {
   static const String _tasksKey = 'study_buddy_tasks';
 
+  // --- Task Management ---
+
   Future<void> saveTasks(List<Task> tasks) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String encodedTasks = jsonEncode(
@@ -28,4 +30,5 @@ class StorageService {
         .map((dynamic item) => Task.fromMap(item as Map<String, dynamic>))
         .toList();
   }
+
 }

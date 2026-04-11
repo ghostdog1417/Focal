@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_style.dart';
+
 class ProgressScreen extends StatelessWidget {
   const ProgressScreen({
     super.key,
@@ -17,98 +19,170 @@ class ProgressScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Progress',
+          'Your Progress',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.s20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Completed Tasks Today',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: 160,
-                      height: 160,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CircularProgressIndicator(
-                            value: progress.clamp(0, 1),
-                            strokeWidth: 10,
-                            backgroundColor: const Color(0xFFE5E7EB),
-                            color: const Color(0xFF2FBF71),
-                          ),
-                          Center(
-                            child: Text(
-                              '$completedToday',
-                              style: const TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF111827),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.card,
+                border: Border.all(color: AppColors.divider),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 170,
+                    height: 170,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CircularProgressIndicator(
+                          value: progress.clamp(0, 1),
+                          strokeWidth: 12,
+                          backgroundColor: const Color(0xFFE7EBF3),
+                          color: AppColors.accentGreen,
+                        ),
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${(progress.clamp(0, 1) * 100).toStringAsFixed(0)}%',
+                                style: const TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
-                            ),
+                              const Text(
+                                'Completed',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 14),
-                    Text(
-                      '$completedToday out of $totalTasks task(s) done today',
-                      style: const TextStyle(color: Color(0xFF6B7280)),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
+                  const Text(
+                    'You are building consistency one task at a time.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 18),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Daily Completion Rate',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF374151),
-                      ),
+            const SizedBox(height: AppSpacing.s16),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.card,
+                border: Border.all(color: AppColors.divider),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Today\'s Stats',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
-                    const SizedBox(height: 10),
-                    LinearProgressIndicator(
+                  ),
+                  const SizedBox(height: AppSpacing.s12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          label: 'Completed',
+                          value: '$completedToday',
+                          color: AppColors.accentGreen,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s12),
+                      Expanded(
+                        child: _StatCard(
+                          label: 'Total Tasks',
+                          value: '$totalTasks',
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
+                  ClipRRect(
+                    borderRadius: AppRadius.small,
+                    child: LinearProgressIndicator(
                       value: progress.clamp(0, 1),
                       minHeight: 8,
-                      borderRadius: BorderRadius.circular(16),
-                      backgroundColor: const Color(0xFFE5E7EB),
-                      color: const Color(0xFF4B7BEC),
+                      backgroundColor: const Color(0xFFE7EBF3),
+                      color: AppColors.primary,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${(progress.clamp(0, 1) * 100).toStringAsFixed(0)}% complete',
-                      style: const TextStyle(color: Color(0xFF6B7280)),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.s12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: AppRadius.input,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }

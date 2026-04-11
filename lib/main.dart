@@ -1,46 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import 'firebase_options.dart';
 import 'models/task.dart';
 import 'screens/home_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/timer_screen.dart';
+import 'screens/sign_in_screen.dart';
+import 'services/auth_service.dart';
 import 'services/storage_service.dart';
+import 'services/streak_service.dart';
+import 'theme/app_style.dart';
+import 'theme/app_theme_builder.dart';
+import 'widgets/focus_nest_logo.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
   runApp(const StudyBuddyApp());
 }
 
-class StudyBuddyApp extends StatelessWidget {
+class StudyBuddyApp extends StatefulWidget {
   const StudyBuddyApp({super.key});
 
+  @override
+  State<StudyBuddyApp> createState() => _StudyBuddyAppState();
+}
+
+class _StudyBuddyAppState extends State<StudyBuddyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'StudyBuddy',
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF6F8FB),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4B7BEC),
-          brightness: Brightness.light,
-        ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          foregroundColor: Color(0xFF1F2937),
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          color: Colors.white,
-        ),
-      ),
-      home: const SplashScreen(),
+      title: 'FocusNest',
+      theme: AppThemeBuilder.buildLightTheme(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.data == null) {
+          return const SignInScreen();
+        }
+
+        return const SplashScreen();
+      },
     );
   }
 }
@@ -91,33 +115,36 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFEAF1FF), Color(0xFFF6F8FB)],
+            colors: [AppColors.progressCardStart, AppColors.background],
           ),
         ),
         child: Center(
           child: FadeTransition(
             opacity: _fadeAnimation,
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.menu_book_rounded, size: 64, color: Color(0xFF4B7BEC)),
-                SizedBox(height: 16),
-                Text(
-                  'StudyBuddy',
+                const FocusNestLogo(size: 72),
+                const SizedBox(height: 16),
+                const Text(
+                  'FocusNest',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
+                    color: AppColors.textPrimary,
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
+                const SizedBox(height: 8),
+                const Text(
                   'Smart Task & Study Tracker',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -136,16 +163,21 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  final AuthService _authService = AuthService();
   final StorageService _storageService = StorageService();
+  final StreakService _streakService = StreakService();
+  final PageController _pageController = PageController();
 
   List<Task> _tasks = <Task>[];
   bool _isLoading = true;
   int _selectedIndex = 0;
+  int _currentStreak = 0;
 
   @override
   void initState() {
     super.initState();
     _loadTasks();
+    _loadStreak();
   }
 
   Future<void> _loadTasks() async {
@@ -154,6 +186,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       _tasks = loadedTasks;
       _isLoading = false;
+    });
+  }
+
+  Future<void> _loadStreak() async {
+    final int streak = await _streakService.getStreak();
+    if (!mounted) return;
+    setState(() {
+      _currentStreak = streak;
     });
   }
 
@@ -193,8 +233,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       isCompleted: isCompleted,
       completedAt: isCompleted ? DateTime.now() : null,
     );
+    
+    // Update streak if task was completed
+    if (isCompleted) {
+      await _streakService.updateStreak(true);
+      await _loadStreak();
+    }
+    
     setState(() {});
     await _saveTasks();
+  }
+
+  Future<void> _logout() async {
+    await _authService.signOut();
   }
 
   int _completedTasksToday() {
@@ -209,6 +260,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final List<Widget> screens = <Widget>[
       HomeScreen(
@@ -218,6 +275,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onUpdateTask: _updateTask,
         onDeleteTask: _deleteTask,
         onToggleTask: _toggleTask,
+        onLogout: _logout,
+        currentStreak: _currentStreak,
       ),
       const TimerScreen(),
       ProgressScreen(
@@ -227,30 +286,51 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (int index) {
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (int index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        selectedItemColor: const Color(0xFF4B7BEC),
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.checklist_rounded),
-            label: 'Tasks',
+        children: screens,
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: NavigationBar(
+            height: 70,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (int index) {
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+              );
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            backgroundColor: AppColors.surface,
+            indicatorColor: const Color(0xFFE3ECFF),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.checklist_rounded),
+                label: 'Tasks',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.timer_outlined),
+                label: 'Timer',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.insights_outlined),
+                label: 'Progress',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timer_outlined),
-            label: 'Timer',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insights_outlined),
-            label: 'Progress',
-          ),
-        ],
+        ),
       ),
     );
   }
