@@ -18,12 +18,27 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _estimatedMinutesController =
+      TextEditingController();
   late TaskCategory _selectedCategory;
+  late TaskPriority _selectedPriority;
+  DateTime? _dueDate;
+  bool _isHabit = false;
+  HabitFrequency _habitFrequency = HabitFrequency.daily;
+  late Set<int> _customWeekdays;
 
   @override
   void initState() {
     super.initState();
     _selectedCategory = widget.task?.category ?? TaskCategory.study;
+    _selectedPriority = widget.task?.priority ?? TaskPriority.medium;
+    _dueDate = widget.task?.dueDate;
+    _isHabit = widget.task?.isHabit ?? false;
+    _habitFrequency = widget.task?.habitFrequency ?? HabitFrequency.daily;
+    _customWeekdays = (widget.task?.customWeekdays ?? const <int>[]).toSet();
+    _estimatedMinutesController.text =
+        (widget.task?.estimatedMinutes ?? 30).toString();
+
     if (widget.task != null) {
       _titleController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description ?? '';
@@ -34,6 +49,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _estimatedMinutesController.dispose();
     super.dispose();
   }
 
@@ -42,6 +58,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
     final String title = _titleController.text.trim();
     final String description = _descriptionController.text.trim();
+    final int estimatedMinutes =
+        int.tryParse(_estimatedMinutesController.text.trim()) ?? 30;
 
     final Task task = widget.task == null
         ? Task(
@@ -49,12 +67,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             title: title,
             description: description.isEmpty ? null : description,
             category: _selectedCategory,
+            priority: _selectedPriority,
+            dueDate: _dueDate,
+            estimatedMinutes: estimatedMinutes,
+            isHabit: _isHabit,
+            habitFrequency: _habitFrequency,
+            customWeekdays: _customWeekdays.toList()..sort(),
             createdAt: DateTime.now(),
           )
         : widget.task!.copyWith(
             title: title,
             description: description.isEmpty ? null : description,
             category: _selectedCategory,
+            priority: _selectedPriority,
+            dueDate: _dueDate,
+            clearDueDate: _dueDate == null,
+            estimatedMinutes: estimatedMinutes,
+            isHabit: _isHabit,
+            habitFrequency: _habitFrequency,
+            customWeekdays: _customWeekdays.toList()..sort(),
           );
 
     Navigator.of(context).pop(task);
@@ -123,6 +154,32 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   }).toList(),
                 ),
                 const SizedBox(height: AppSpacing.s16),
+                Text(
+                  'Priority',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                DropdownButtonFormField<TaskPriority>(
+                  value: _selectedPriority,
+                  decoration: const InputDecoration(
+                    labelText: 'Task priority',
+                  ),
+                  items: TaskPriority.values
+                      .map(
+                        (TaskPriority p) => DropdownMenuItem<TaskPriority>(
+                          value: p,
+                          child: Text(p.display),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (TaskPriority? value) {
+                    if (value == null) return;
+                    setState(() => _selectedPriority = value);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s16),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.s16),
                   decoration: BoxDecoration(
@@ -158,6 +215,132 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           hintText: 'Add notes or details for this task',
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.s16),
+                      TextFormField(
+                        controller: _estimatedMinutesController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Estimated minutes',
+                          hintText: '30',
+                        ),
+                        validator: (String? value) {
+                          final int? minutes = int.tryParse(value ?? '');
+                          if (minutes == null || minutes <= 0) {
+                            return 'Enter a valid duration';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.s16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            _dueDate == null
+                                ? 'No due date set'
+                                : 'Due: ${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: AppSpacing.s8),
+                          Wrap(
+                            alignment: WrapAlignment.end,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: AppSpacing.s4,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  final DateTime now = DateTime.now();
+                                  final DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    firstDate: DateTime(now.year - 1),
+                                    lastDate: DateTime(now.year + 5),
+                                    initialDate: _dueDate ?? now,
+                                  );
+                                  if (!mounted) return;
+                                  if (picked != null) {
+                                    setState(() => _dueDate = picked);
+                                  }
+                                },
+                                child: const Text('Set due date'),
+                              ),
+                              if (_dueDate != null)
+                                IconButton(
+                                  tooltip: 'Clear due date',
+                                  onPressed: () {
+                                    if (!mounted) return;
+                                    setState(() => _dueDate = null);
+                                  },
+                                  icon: const Icon(Icons.clear),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.s12),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        value: _isHabit,
+                        title: const Text('Treat as habit'),
+                        subtitle: const Text('Repeats based on selected frequency'),
+                        onChanged: (bool value) {
+                          setState(() => _isHabit = value);
+                        },
+                      ),
+                      if (_isHabit)
+                        DropdownButtonFormField<HabitFrequency>(
+                          value: _habitFrequency,
+                          decoration: const InputDecoration(
+                            labelText: 'Habit frequency',
+                          ),
+                          items: HabitFrequency.values
+                              .map(
+                                (HabitFrequency h) =>
+                                    DropdownMenuItem<HabitFrequency>(
+                                  value: h,
+                                  child: Text(h.display),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (HabitFrequency? value) {
+                            if (value == null) return;
+                            setState(() {
+                              _habitFrequency = value;
+                              if (_habitFrequency == HabitFrequency.custom &&
+                                  _customWeekdays.isEmpty) {
+                                _customWeekdays.add(DateTime.now().weekday);
+                              }
+                            });
+                          },
+                        ),
+                      if (_isHabit && _habitFrequency == HabitFrequency.custom)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.s12),
+                          child: Wrap(
+                            spacing: AppSpacing.s8,
+                            runSpacing: AppSpacing.s8,
+                            children: _weekdayOptions().map((MapEntry<int, String> item) {
+                              final bool selected = _customWeekdays.contains(item.key);
+                              return FilterChip(
+                                label: Text(item.value),
+                                selected: selected,
+                                onSelected: (bool value) {
+                                  setState(() {
+                                    if (value) {
+                                      _customWeekdays.add(item.key);
+                                    } else {
+                                      _customWeekdays.remove(item.key);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -187,5 +370,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       case TaskCategory.revision:
         return CategoryColors.revisionLight;
     }
+  }
+
+  List<MapEntry<int, String>> _weekdayOptions() {
+    return const <MapEntry<int, String>>[
+      MapEntry<int, String>(DateTime.monday, 'Mon'),
+      MapEntry<int, String>(DateTime.tuesday, 'Tue'),
+      MapEntry<int, String>(DateTime.wednesday, 'Wed'),
+      MapEntry<int, String>(DateTime.thursday, 'Thu'),
+      MapEntry<int, String>(DateTime.friday, 'Fri'),
+      MapEntry<int, String>(DateTime.saturday, 'Sat'),
+      MapEntry<int, String>(DateTime.sunday, 'Sun'),
+    ];
   }
 }

@@ -1,12 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  bool get _supportsGoogleSignIn =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -40,6 +47,12 @@ class AuthService {
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      if (!_supportsGoogleSignIn) {
+        throw UnsupportedError(
+          'Google sign-in is not supported on this platform. Use email and password instead.',
+        );
+      }
+
       if (kIsWeb) {
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
         try {

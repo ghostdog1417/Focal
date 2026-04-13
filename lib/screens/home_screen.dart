@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
+import '../services/journal_service.dart';
+import '../services/planner_service.dart';
+import '../services/reminder_notification_service.dart';
+import '../services/reminder_intelligence_service.dart';
 import '../theme/app_style.dart';
 import '../widgets/task_tile.dart';
 import 'add_task_screen.dart';
@@ -16,6 +20,7 @@ class HomeScreen extends StatefulWidget {
     required this.onToggleTask,
     required this.onLogout,
     required this.currentStreak,
+    this.onJournalUpdated,
   });
 
   final List<Task> tasks;
@@ -26,6 +31,7 @@ class HomeScreen extends StatefulWidget {
   final Future<void> Function(String id, bool isCompleted) onToggleTask;
   final Future<void> Function() onLogout;
   final int currentStreak;
+  final Future<void> Function()? onJournalUpdated;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -34,17 +40,119 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   final List<Task> _visibleTasks = <Task>[];
+  final PlannerService _plannerService = PlannerService();
+  final ReminderIntelligenceService _reminderService =
+      ReminderIntelligenceService();
+    final ReminderNotificationService _reminderNotificationService =
+      ReminderNotificationService();
+  final JournalService _journalService = JournalService();
+
+  List<Task> _topTasks = <Task>[];
+  ReminderSuggestion _reminderSuggestion = const ReminderSuggestion(
+    hour: 18,
+    message: 'No pattern yet. Start with a 6:00 PM reminder.',
+  );
+  JournalEntry? _todayJournal;
+  int? _lastScheduledReminderHour;
 
   @override
   void initState() {
     super.initState();
     _visibleTasks.addAll(widget.tasks);
+    _refreshInsights();
   }
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     _syncAnimatedList(widget.tasks);
+    _refreshInsights();
+  }
+
+  Future<void> _refreshInsights() async {
+    final List<Task> planner = _plannerService.suggestTopTasks(widget.tasks);
+    final ReminderSuggestion reminder = _reminderService.suggestReminder(widget.tasks);
+    final JournalEntry? todayEntry = await _journalService.getTodayEntry();
+
+    if (_lastScheduledReminderHour != reminder.hour) {
+      await _reminderNotificationService.scheduleDailyReminder(
+        hour: reminder.hour,
+        title: 'Focal • ${reminder.formattedTime}',
+        body: reminder.message,
+      );
+      _lastScheduledReminderHour = reminder.hour;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _topTasks = planner;
+      _reminderSuggestion = reminder;
+      _todayJournal = todayEntry;
+    });
+  }
+
+  Future<void> _openJournalPrompt() async {
+    final TextEditingController wentWellController = TextEditingController(
+      text: _todayJournal?.wentWell ?? '',
+    );
+    final TextEditingController blockedByController = TextEditingController(
+      text: _todayJournal?.blockedBy ?? '',
+    );
+
+    final bool? shouldSave = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Daily Reflection'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: wentWellController,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'What went well?',
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                TextField(
+                  controller: blockedByController,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'What blocked you?',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldSave == true) {
+      await _journalService.saveTodayEntry(
+        wentWell: wentWellController.text.trim(),
+        blockedBy: blockedByController.text.trim(),
+      );
+      await _refreshInsights();
+      await widget.onJournalUpdated?.call();
+    }
+
+    wentWellController.dispose();
+    blockedByController.dispose();
   }
 
   void _syncAnimatedList(List<Task> newTasks) {
@@ -131,6 +239,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final int completedCount =
         widget.tasks.where((Task task) => task.isCompleted).length;
     final int pendingCount = widget.tasks.length - completedCount;
+    final DateTime today = DateTime.now();
+    final int habitsToday = widget.tasks.where((Task task) {
+      return task.isHabit && task.isHabitDueOn(today);
+    }).length;
+    final int completedHabitsToday = widget.tasks.where((Task task) {
+      return task.isHabit && task.isHabitDueOn(today) && task.isCompleted;
+    }).length;
 
     final Color surfaceColor = AppColors.surface;
     final Color textPrimary = AppColors.textPrimary;
@@ -258,6 +373,154 @@ class _HomeScreenState extends State<HomeScreen> {
                       backgroundColor: const Color(0xFFDCE4F4),
                       color: AppColors.primary,
                     ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            if (_topTasks.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.s16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.card,
+                  border: Border.all(color: AppColors.divider),
+                  boxShadow: AppShadows.soft,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Top 3 Focus Plan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s8),
+                    ..._topTasks.map((Task task) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.bolt_rounded,
+                              color: AppColors.primary,
+                              size: 17,
+                            ),
+                            const SizedBox(width: AppSpacing.s8),
+                            Expanded(
+                              child: Text(
+                                '${task.title} · ${task.estimatedMinutes} min',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            if (_topTasks.isNotEmpty) const SizedBox(height: AppSpacing.s12),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.card,
+                border: Border.all(color: AppColors.divider),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Habits',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  Text(
+                    '$completedHabitsToday/$habitsToday completed today',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.card,
+                border: Border.all(color: AppColors.divider),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Smart Reminder Suggestion',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  Text(
+                    _reminderSuggestion.message,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  Text(
+                    'Scheduled daily at ${_reminderSuggestion.formattedTime}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.card,
+                border: Border.all(color: AppColors.divider),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Reflection Journal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _openJournalPrompt,
+                    child: Text(_todayJournal == null ? 'Write' : 'Edit'),
                   ),
                 ],
               ),

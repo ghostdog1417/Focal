@@ -47,6 +47,12 @@ class TaskTile extends StatelessWidget {
           height: 1.3,
         );
 
+    final DateTime now = DateTime.now();
+    final bool isOverdue = task.dueDate != null &&
+        !task.isCompleted &&
+        DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day)
+                .isBefore(DateTime(now.year, now.month, now.day));
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
@@ -112,6 +118,33 @@ class TaskTile extends StatelessWidget {
                     child: Text(task.description!, style: descriptionStyle),
                   ),
                 ),
+              const SizedBox(height: AppSpacing.s8),
+              Wrap(
+                spacing: AppSpacing.s8,
+                runSpacing: AppSpacing.s4,
+                children: [
+                  _InfoChip(
+                    label: task.priority.display,
+                    color: _priorityColor(task.priority),
+                  ),
+                  _InfoChip(
+                    label: '${task.estimatedMinutes} min',
+                    color: const Color(0xFF7E8BA6),
+                  ),
+                  if (task.dueDate != null)
+                    _InfoChip(
+                      label: isOverdue
+                          ? 'Overdue'
+                          : 'Due ${task.dueDate!.day}/${task.dueDate!.month}',
+                      color: isOverdue ? const Color(0xFFCC3E3E) : AppColors.primary,
+                    ),
+                  if (task.isHabit)
+                    _InfoChip(
+                      label: 'Habit · ${task.habitScheduleDisplay}',
+                      color: AppColors.accentGreen,
+                    ),
+                ],
+              ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
                 transitionBuilder: (Widget child, Animation<double> animation) {
@@ -168,5 +201,48 @@ class TaskTile extends StatelessWidget {
       case TaskCategory.revision:
         return CategoryColors.revisionLight.withValues(alpha: 0.15);
     }
+  }
+
+  Color _priorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.low:
+        return const Color(0xFF73839E);
+      case TaskPriority.medium:
+        return const Color(0xFF366AC9);
+      case TaskPriority.high:
+        return const Color(0xFFCB3D3D);
+    }
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s8,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
   }
 }
