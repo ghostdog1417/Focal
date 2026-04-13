@@ -13,7 +13,7 @@ import 'services/storage_service.dart';
 import 'services/streak_service.dart';
 import 'theme/app_style.dart';
 import 'theme/app_theme_builder.dart';
-import 'widgets/focus_nest_logo.dart';
+import 'widgets/focal_logo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,22 +23,22 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  runApp(const StudyBuddyApp());
+  runApp(const FocalApp());
 }
 
-class StudyBuddyApp extends StatefulWidget {
-  const StudyBuddyApp({super.key});
+class FocalApp extends StatefulWidget {
+  const FocalApp({super.key});
 
   @override
-  State<StudyBuddyApp> createState() => _StudyBuddyAppState();
+  State<FocalApp> createState() => _FocalAppState();
 }
 
-class _StudyBuddyAppState extends State<StudyBuddyApp> {
+class _FocalAppState extends State<FocalApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'FocusNest',
+      title: 'Focal',
       theme: AppThemeBuilder.buildLightTheme(),
       home: const AuthGate(),
     );
@@ -128,10 +128,10 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const FocusNestLogo(size: 72),
+                const FocalLogo(size: 72),
                 const SizedBox(height: 16),
                 const Text(
-                  'FocusNest',
+                  'Focal',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w700,
@@ -246,6 +246,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   Future<void> _logout() async {
     await _authService.signOut();
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const SignInScreen()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   int _completedTasksToday() {

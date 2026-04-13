@@ -1,4 +1,4 @@
-package com.focusnest
+package com.focal
 
 import io.flutter.embedding.android.FlutterActivity
 

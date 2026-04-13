@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../services/auth_service.dart';
 import '../theme/app_style.dart';
-import '../widgets/focus_nest_logo.dart';
+import '../widgets/focal_logo.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -178,7 +178,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const FocusNestLogo(size: 72),
+                      const FocalLogo(size: 72),
                       const SizedBox(height: 20),
                       Text(
                         'Welcome back',

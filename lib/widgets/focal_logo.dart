@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_style.dart';
 
-class FocusNestLogo extends StatelessWidget {
-  const FocusNestLogo({
+class FocalLogo extends StatelessWidget {
+  const FocalLogo({
     super.key,
     this.size = 72,
   });
@@ -42,7 +42,7 @@ class FocusNestLogo extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: CustomPaint(
-              painter: _NestPainter(strokeColor),
+              painter: _FocalLogoPainter(strokeColor),
             ),
           ),
         ],
@@ -51,8 +51,8 @@ class FocusNestLogo extends StatelessWidget {
   }
 }
 
-class _NestPainter extends CustomPainter {
-  _NestPainter(this.color);
+class _FocalLogoPainter extends CustomPainter {
+  _FocalLogoPainter(this.color);
 
   final Color color;
 
@@ -92,7 +92,7 @@ class _NestPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _NestPainter oldDelegate) {
+  bool shouldRepaint(covariant _FocalLogoPainter oldDelegate) {
     return oldDelegate.color != color;
   }
 }

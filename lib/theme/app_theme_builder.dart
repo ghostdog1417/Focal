@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_style.dart';
 
-/// Builds ThemeData for StudyBuddy app.
+/// Builds ThemeData for Focal app.
 class AppThemeBuilder {
   static ThemeData buildLightTheme() {
     return ThemeData(
