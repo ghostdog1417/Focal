@@ -287,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Hello, Srijan 👋',
+                              'Hello👋',
                               style: TextStyle(
                                 fontSize: 27,
                                 fontWeight: FontWeight.w700,
@@ -552,31 +552,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                   boxShadow: AppShadows.soft,
                                 ),
                                 child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.task_alt_rounded,
-                                      size: 44,
-                                      color: AppColors.primary,
-                                    ),
-                                    const SizedBox(height: AppSpacing.s12),
-                                    Text(
-                                      'No tasks yet',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        color: textPrimary,
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.task_alt_rounded,
+                                                size: 44,
+                                                color: AppColors.primary,
+                                              ),
+                                              const SizedBox(height: AppSpacing.s12),
+                                              Text(
+                                                'No tasks yet',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: textPrimary,
+                                                ),
+                                              ),
+                                              const SizedBox(height: AppSpacing.s8),
+                                              Text(
+                                                'Start your journey',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: textSecondary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: AppSpacing.s8),
-                                    Text(
-                                      'Start your journey',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: textSecondary,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
                                 ),
                               ),
                             )
