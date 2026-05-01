@@ -18,7 +18,6 @@ class HomeScreen extends StatefulWidget {
     required this.onUpdateTask,
     required this.onDeleteTask,
     required this.onToggleTask,
-    required this.onLogout,
     required this.currentStreak,
     this.onJournalUpdated,
   });
@@ -29,7 +28,6 @@ class HomeScreen extends StatefulWidget {
   final Future<void> Function(Task task) onUpdateTask;
   final Future<void> Function(String id) onDeleteTask;
   final Future<void> Function(String id, bool isCompleted) onToggleTask;
-  final Future<void> Function() onLogout;
   final int currentStreak;
   final Future<void> Function()? onJournalUpdated;
 
@@ -257,13 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
           'Today',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: widget.onLogout,
-            tooltip: 'Logout',
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(

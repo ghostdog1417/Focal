@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import 'firebase_options.dart';
 import 'models/task.dart';
 import 'screens/home_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/timer_screen.dart';
-import 'screens/sign_in_screen.dart';
-import 'services/auth_service.dart';
 import 'services/focus_analytics_service.dart';
 import 'services/journal_service.dart';
 import 'services/storage_service.dart';
@@ -20,12 +15,6 @@ import 'widgets/focal_logo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
   runApp(const FocalApp());
 }
 
@@ -43,31 +32,7 @@ class _FocalAppState extends State<FocalApp> {
       debugShowCheckedModeBanner: false,
       title: 'Focal',
       theme: AppThemeBuilder.buildLightTheme(),
-      home: const AuthGate(),
-    );
-  }
-}
-
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.data == null) {
-          return const SignInScreen();
-        }
-
-        return const SplashScreen();
-      },
+      home: const SplashScreen(),
     );
   }
 }
@@ -166,7 +131,6 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  final AuthService _authService = AuthService();
   final StorageService _storageService = StorageService();
   final StreakService _streakService = StreakService();
   final FocusAnalyticsService _focusAnalyticsService = FocusAnalyticsService();
@@ -315,16 +279,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     await _saveTasks();
   }
 
-  Future<void> _logout() async {
-    await _authService.signOut();
-    if (!mounted) return;
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => const SignInScreen()),
-      (Route<dynamic> route) => false,
-    );
-  }
-
   int _completedTasksToday() {
     final DateTime now = DateTime.now();
     return _tasks.where((Task task) {
@@ -379,7 +333,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onUpdateTask: _updateTask,
         onDeleteTask: _deleteTask,
         onToggleTask: _toggleTask,
-        onLogout: _logout,
         currentStreak: _currentStreak,
         onJournalUpdated: _loadJournalInsights,
       ),
