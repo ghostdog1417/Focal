@@ -1,8 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  bool get _supportsGoogleSignIn =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -36,9 +47,14 @@ class AuthService {
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      if (!_supportsGoogleSignIn) {
+        throw UnsupportedError(
+          'Google sign-in is not supported on this platform. Use email and password instead.',
+        );
+      }
 
       if (kIsWeb) {
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
         try {
           return await _auth.signInWithPopup(googleProvider);
         } on FirebaseAuthException catch (e) {
@@ -48,11 +64,28 @@ class AuthService {
           }
           rethrow;
         }
-      }
+      } else {
+        // Mobile: Use GoogleSignIn package for better platform integration
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          debugPrint('Google sign in cancelled by user');
+          return null;
+        }
 
-      return await _auth.signInWithProvider(googleProvider);
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        return await _auth.signInWithCredential(credential);
+      }
     } on FirebaseAuthException catch (e) {
       debugPrint('Google sign in error: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('Google sign in exception: $e');
       rethrow;
     }
   }
@@ -61,6 +94,8 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      // Also sign out from Google if signed in via Google
+      unawaited(_googleSignIn.signOut());
     } catch (e) {
       debugPrint('Sign out error: $e');
       rethrow;

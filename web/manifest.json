@@ -1,11 +1,11 @@
 {
-    "name": "FocusNest",
-    "short_name": "FocusNest",
+    "name": "Focal",
+    "short_name": "Focal",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#5B8DEF",
     "theme_color": "#5B8DEF",
-    "description": "FocusNest - Smart Task & Study Tracker.",
+    "description": "Focal - Smart Task & Study Tracker.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../services/auth_service.dart';
 import '../theme/app_style.dart';
-import '../widgets/focus_nest_logo.dart';
+import '../widgets/focal_logo.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -20,6 +21,12 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _isSigningIn = false;
   String? _errorMessage;
   AuthCredential? _pendingGoogleCredential;
+
+  bool get _supportsGoogleSignIn =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
 
   String _friendlyAuthMessage(FirebaseAuthException error) {
     switch (error.code) {
@@ -41,6 +48,13 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
+    if (!_supportsGoogleSignIn) {
+      setState(() {
+        _errorMessage = 'Google sign-in is not available on Windows desktop. Use email and password instead.';
+      });
+      return;
+    }
+
     setState(() {
       _isSigningIn = true;
       _errorMessage = null;
@@ -60,9 +74,6 @@ class _SignInScreenState extends State<SignInScreen> {
       }
 
       if (!mounted) return;
-      setState(() {
-        _isSigningIn = false;
-      });
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -122,10 +133,12 @@ class _SignInScreenState extends State<SignInScreen> {
       }
 
       if (!mounted) return;
-      setState(() {
-        _isSigningIn = false;
-        _pendingGoogleCredential = null;
-      });
+      if (FirebaseAuth.instance.currentUser == null) {
+        setState(() {
+          _isSigningIn = false;
+          _errorMessage = 'Sign-in did not complete. Please try again.';
+        });
+      }
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -178,7 +191,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const FocusNestLogo(size: 72),
+                      const FocalLogo(size: 72),
                       const SizedBox(height: 20),
                       Text(
                         'Welcome back',
@@ -188,7 +201,9 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Sign in with Google to continue your study flow.',
+                        _supportsGoogleSignIn
+                            ? 'Sign in with Google to continue your study flow.'
+                            : 'Use email and password on Windows desktop.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: AppColors.textSecondary),
                       ),
@@ -267,30 +282,49 @@ class _SignInScreenState extends State<SignInScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: _isSigningIn ? null : _signInWithGoogle,
-                          icon: _isSigningIn
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.login_rounded),
-                          label: Text(
-                            _isSigningIn ? 'Signing in...' : 'Continue with Google',
+                      if (_supportsGoogleSignIn)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: _isSigningIn ? null : _signInWithGoogle,
+                            icon: _isSigningIn
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.login_rounded),
+                            label: Text(
+                              _isSigningIn ? 'Signing in...' : 'Continue with Google',
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.button,
+                              ),
+                            ),
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: AppRadius.button,
+                        )
+                      else
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.progressCardStart,
+                            borderRadius: AppRadius.button,
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: const Text(
+                            'Google sign-in is disabled on Windows desktop.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                      ),
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(

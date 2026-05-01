@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/journal_service.dart';
 import '../theme/app_style.dart';
 
 class ProgressScreen extends StatelessWidget {
@@ -7,10 +8,18 @@ class ProgressScreen extends StatelessWidget {
     super.key,
     required this.completedToday,
     required this.totalTasks,
+    required this.focusMinutesToday,
+    required this.weeklyFocusMinutes,
+    required this.weeklyCompletedTasks,
+    required this.weeklyJournalEntries,
   });
 
   final int completedToday;
   final int totalTasks;
+  final int focusMinutesToday;
+  final List<int> weeklyFocusMinutes;
+  final List<int> weeklyCompletedTasks;
+  final List<JournalEntry> weeklyJournalEntries;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +32,7 @@ class ProgressScreen extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.s20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,6 +133,12 @@ class ProgressScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: AppSpacing.s12),
+                  _StatCard(
+                    label: 'Focus Minutes Today',
+                    value: '$focusMinutesToday min',
+                    color: const Color(0xFF3F8CFF),
+                  ),
                   const SizedBox(height: AppSpacing.s16),
                   ClipRRect(
                     borderRadius: AppRadius.small,
@@ -137,8 +152,163 @@ class ProgressScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.s16),
+            _WeeklyChartCard(
+              title: '7-Day Task Completions',
+              values: weeklyCompletedTasks,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            _WeeklyChartCard(
+              title: '7-Day Focus Minutes',
+              values: weeklyFocusMinutes,
+              color: AppColors.accentGreen,
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            _ReflectionSummaryCard(entries: weeklyJournalEntries),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ReflectionSummaryCard extends StatelessWidget {
+  const _ReflectionSummaryCard({required this.entries});
+
+  final List<JournalEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    final int reflectionCount = entries.length;
+    final JournalEntry? latest = entries.isEmpty ? null : entries.last;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.card,
+        border: Border.all(color: AppColors.divider),
+        boxShadow: AppShadows.soft,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Reflection Summary',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+          Text(
+            '$reflectionCount reflections in the last 7 days',
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          if (latest != null) ...[
+            const SizedBox(height: AppSpacing.s12),
+            Text(
+              'Latest win: ${latest.wentWell.isEmpty ? 'No note added' : latest.wentWell}',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            Text(
+              'Latest blocker: ${latest.blockedBy.isEmpty ? 'No blocker added' : latest.blockedBy}',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WeeklyChartCard extends StatelessWidget {
+  const _WeeklyChartCard({
+    required this.title,
+    required this.values,
+    required this.color,
+  });
+
+  final String title;
+  final List<int> values;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final int safeMax = values.isEmpty
+        ? 1
+        : values.reduce((int a, int b) => a > b ? a : b).clamp(1, 99999);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.card,
+        border: Border.all(color: AppColors.divider),
+        boxShadow: AppShadows.soft,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+          SizedBox(
+            height: 86,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List<Widget>.generate(values.length, (int index) {
+                final double ratio = values[index] / safeMax;
+                final double barHeight = 12 + (56 * ratio.clamp(0, 1));
+
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${values[index]}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          height: barHeight,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
       ),
     );
   }

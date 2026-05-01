@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
 
 class StorageService {
-  static const String _tasksKey = 'study_buddy_tasks';
+  static const String _tasksKey = 'focal_tasks';
 
   // --- Task Management ---
 

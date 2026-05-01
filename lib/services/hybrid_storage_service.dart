@@ -9,9 +9,9 @@ class HybridStorageService {
   bool _useFirebase = false;
 
   // Keys for SharedPreferences
-  static const String _tasksKey = 'study_buddy_tasks';
-  static const String _streakKey = 'study_buddy_streak';
-  static const String _lastStreakDateKey = 'study_buddy_last_streak_date';
+  static const String _tasksKey = 'focal_tasks';
+  static const String _streakKey = 'focal_streak';
+  static const String _lastStreakDateKey = 'focal_last_streak_date';
 
   // Initialize storage service
   Future<void> init() async {

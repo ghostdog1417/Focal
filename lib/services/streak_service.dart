@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Service to manage daily task completion streaks.
 /// Tracks consecutive days with at least one completed task.
 class StreakService {
-  static const String _streakKey = 'study_buddy_streak';
-  static const String _lastStreakDateKey = 'study_buddy_last_streak_date';
+  static const String _streakKey = 'focal_streak';
+  static const String _lastStreakDateKey = 'focal_last_streak_date';
 
   /// Get the current streak count.
   Future<int> getStreak() async {
