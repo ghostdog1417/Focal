@@ -56,7 +56,7 @@ class ProgressScreen extends StatelessWidget {
                         CircularProgressIndicator(
                           value: progress.clamp(0, 1),
                           strokeWidth: 12,
-                          backgroundColor: const Color(0xFFE7EBF3),
+                          backgroundColor: AppColors.progressTrack,
                           color: AppColors.accentGreen,
                         ),
                         Center(
@@ -137,7 +137,7 @@ class ProgressScreen extends StatelessWidget {
                   _StatCard(
                     label: 'Focus Minutes Today',
                     value: '$focusMinutesToday min',
-                    color: const Color(0xFF3F8CFF),
+                    color: AppColors.primary,
                   ),
                   const SizedBox(height: AppSpacing.s16),
                   ClipRRect(
@@ -145,7 +145,7 @@ class ProgressScreen extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress.clamp(0, 1),
                       minHeight: 8,
-                      backgroundColor: const Color(0xFFE7EBF3),
+                      backgroundColor: AppColors.progressTrack,
                       color: AppColors.primary,
                     ),
                   ),

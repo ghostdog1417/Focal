@@ -19,15 +19,23 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  static const int focusDuration = 25 * 60;
-  static const int breakDuration = 5 * 60;
+  static const int _defaultFocusMinutes = 25;
+  static const int _defaultBreakMinutes = 5;
 
   Timer? _timer;
-  int _remainingSeconds = focusDuration;
+  int _focusDurationSeconds = _defaultFocusMinutes * 60;
+  int _breakDurationSeconds = _defaultBreakMinutes * 60;
+  late int _remainingSeconds;
   bool _isRunning = false;
   bool _isFocusMode = true;
   bool _strictFocusEnabled = false;
   int _interruptions = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _remainingSeconds = _focusDurationSeconds;
+  }
 
   void _notifyLockState() {
     widget.onStrictFocusLockChanged
@@ -64,7 +72,8 @@ class _TimerScreenState extends State<TimerScreen> {
         setState(() {
           _isRunning = false;
           _isFocusMode = !_isFocusMode;
-          _remainingSeconds = _isFocusMode ? focusDuration : breakDuration;
+            _remainingSeconds =
+              _isFocusMode ? _focusDurationSeconds : _breakDurationSeconds;
 
           if (completedFocusSession) {
             _interruptions = 0;
@@ -72,7 +81,7 @@ class _TimerScreenState extends State<TimerScreen> {
         });
 
         if (completedFocusSession) {
-          widget.onFocusSessionCompleted?.call(focusDuration ~/ 60);
+          widget.onFocusSessionCompleted?.call(_focusDurationSeconds ~/ 60);
         }
 
         _notifyLockState();
@@ -95,7 +104,7 @@ class _TimerScreenState extends State<TimerScreen> {
     setState(() {
       _isRunning = false;
       _isFocusMode = true;
-      _remainingSeconds = focusDuration;
+      _remainingSeconds = _focusDurationSeconds;
       _interruptions = 0;
     });
 
@@ -110,6 +119,86 @@ class _TimerScreenState extends State<TimerScreen> {
     return '$mm:$ss';
   }
 
+  Future<void> _openSetTimeDialog() async {
+    final TextEditingController focusController = TextEditingController(
+      text: (_focusDurationSeconds ~/ 60).toString(),
+    );
+    final TextEditingController breakController = TextEditingController(
+      text: (_breakDurationSeconds ~/ 60).toString(),
+    );
+
+    final bool? shouldSave = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Set Timer Length'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: focusController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Focus minutes (1-180)',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.s12),
+              TextField(
+                controller: breakController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Break minutes (1-60)',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldSave == true) {
+      final int? focusMinutes = int.tryParse(focusController.text.trim());
+      final int? breakMinutes = int.tryParse(breakController.text.trim());
+
+      if (focusMinutes == null ||
+          breakMinutes == null ||
+          focusMinutes < 1 ||
+          focusMinutes > 180 ||
+          breakMinutes < 1 ||
+          breakMinutes > 60) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Enter valid times. Focus: 1-180, Break: 1-60.'),
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _focusDurationSeconds = focusMinutes * 60;
+          _breakDurationSeconds = breakMinutes * 60;
+          _remainingSeconds = _isFocusMode
+              ? _focusDurationSeconds
+              : _breakDurationSeconds;
+          _interruptions = 0;
+        });
+      }
+    }
+
+    focusController.dispose();
+    breakController.dispose();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -120,8 +209,8 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   Widget build(BuildContext context) {
     final double progress = _isFocusMode
-        ? _remainingSeconds / focusDuration
-        : _remainingSeconds / breakDuration;
+      ? _remainingSeconds / _focusDurationSeconds
+      : _remainingSeconds / _breakDurationSeconds;
 
     return Scaffold(
       appBar: AppBar(
@@ -208,10 +297,15 @@ class _TimerScreenState extends State<TimerScreen> {
                     border: Border.all(color: AppColors.divider),
                     boxShadow: AppShadows.soft,
                   ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                         SizedBox(
                           height: 240,
                           width: 240,
@@ -246,7 +340,7 @@ class _TimerScreenState extends State<TimerScreen> {
                                 child: CircularProgressIndicator(
                                   value: progress,
                                   strokeWidth: 11,
-                                  backgroundColor: const Color(0xFFE7EBF3),
+                                  backgroundColor: AppColors.progressTrack,
                                   color: _isFocusMode
                                       ? AppColors.primary
                                       : AppColors.accentGreen,
@@ -278,9 +372,25 @@ class _TimerScreenState extends State<TimerScreen> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.s16),
-                        const Text(
-                          'Pomodoro: 25 min focus • 5 min break',
-                          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: AppSpacing.s8,
+                          runSpacing: AppSpacing.s4,
+                          children: [
+                            Text(
+                              'Pomodoro: ${_focusDurationSeconds ~/ 60} min focus • ${_breakDurationSeconds ~/ 60} min break',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: _isRunning ? null : _openSetTimeDialog,
+                              icon: const Icon(Icons.schedule_rounded, size: 16),
+                              label: const Text('Set Time'),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: AppSpacing.s12),
                         Container(
@@ -290,7 +400,7 @@ class _TimerScreenState extends State<TimerScreen> {
                           ),
                           decoration: BoxDecoration(
                             borderRadius: AppRadius.small,
-                            color: const Color(0xFFF4F6FB),
+                            color: AppColors.background,
                           ),
                           child: Text(
                             'Interruptions: $_interruptions',
@@ -301,8 +411,11 @@ class _TimerScreenState extends State<TimerScreen> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -325,7 +438,7 @@ class _TimerScreenState extends State<TimerScreen> {
                       onPressed: _isRunning ? _startOrPauseTimer : null,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: const Color(0xFF2C3652),
+                        backgroundColor: AppColors.buttonSecondary,
                         foregroundColor: Colors.white,
                         shape: const RoundedRectangleBorder(borderRadius: AppRadius.button),
                       ),

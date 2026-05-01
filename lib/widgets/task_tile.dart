@@ -26,9 +26,9 @@ class TaskTile extends StatelessWidget {
     final Color textPrimary = AppColors.textPrimary;
     final Color textSecondary = AppColors.textSecondary;
     final Color dividerColor = AppColors.divider;
-    const Color completedBg = Color(0xFFF2FBF3);
-    const Color completedBorder = Color(0xFFCBE8CF);
-    const Color completedText = Color(0xFF2D7A31);
+    const Color completedBg = AppColors.successSurface;
+    const Color completedBorder = AppColors.successBorder;
+    const Color completedText = AppColors.successText;
 
     // Get category colors
     final Color categoryBgColor = _getCategoryBgColor(task.category);
@@ -129,14 +129,14 @@ class TaskTile extends StatelessWidget {
                   ),
                   _InfoChip(
                     label: '${task.estimatedMinutes} min',
-                    color: const Color(0xFF7E8BA6),
+                    color: AppColors.mutedChip,
                   ),
                   if (task.dueDate != null)
                     _InfoChip(
                       label: isOverdue
                           ? 'Overdue'
                           : 'Due ${task.dueDate!.day}/${task.dueDate!.month}',
-                      color: isOverdue ? const Color(0xFFCC3E3E) : AppColors.primary,
+                      color: isOverdue ? AppColors.danger : AppColors.primary,
                     ),
                   if (task.isHabit)
                     _InfoChip(
@@ -156,7 +156,7 @@ class TaskTile extends StatelessWidget {
                         margin: const EdgeInsets.only(top: 7),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDFF2E0),
+                          color: AppColors.successSurface,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -206,11 +206,11 @@ class TaskTile extends StatelessWidget {
   Color _priorityColor(TaskPriority priority) {
     switch (priority) {
       case TaskPriority.low:
-        return const Color(0xFF73839E);
+        return AppColors.mutedChip;
       case TaskPriority.medium:
-        return const Color(0xFF366AC9);
+        return AppColors.primary;
       case TaskPriority.high:
-        return const Color(0xFFCB3D3D);
+        return AppColors.danger;
     }
   }
 }

@@ -256,12 +256,12 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.s20,
           AppSpacing.s8,
           AppSpacing.s20,
-          0,
+          104,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -273,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   colors: [AppColors.progressCardStart, AppColors.progressCardEnd],
                 ),
                 borderRadius: AppRadius.card,
-                border: Border.all(color: const Color(0xFFD8E3FA)),
+                border: Border.all(color: AppColors.divider),
                 boxShadow: AppShadows.soft,
               ),
               child: Column(
@@ -361,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: LinearProgressIndicator(
                       value: widget.tasks.isEmpty ? 0 : completedCount / widget.tasks.length,
                       minHeight: 8,
-                      backgroundColor: const Color(0xFFDCE4F4),
+                      backgroundColor: AppColors.progressTrack,
                       color: AppColors.primary,
                     ),
                   ),
@@ -534,76 +534,64 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.s12),
-            Expanded(
-              child: widget.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: widget.tasks.isEmpty
-                          ? Center(
-                              key: const ValueKey<String>('empty-state'),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(AppSpacing.s24),
-                                decoration: BoxDecoration(
-                                  color: surfaceColor,
-                                  borderRadius: AppRadius.card,
-                                  border: Border.all(color: AppColors.divider),
-                                  boxShadow: AppShadows.soft,
-                                ),
-                                child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.task_alt_rounded,
-                                                size: 44,
-                                                color: AppColors.primary,
-                                              ),
-                                              const SizedBox(height: AppSpacing.s12),
-                                              Text(
-                                                'No tasks yet',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: textPrimary,
-                                                ),
-                                              ),
-                                              const SizedBox(height: AppSpacing.s8),
-                                              Text(
-                                                'Start your journey',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: textSecondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                ),
-                              ),
-                            )
-                          : AnimatedList(
-                              key: _listKey,
-                              padding: const EdgeInsets.only(bottom: 104),
-                              initialItemCount: _visibleTasks.length,
-                              itemBuilder: (
-                                BuildContext context,
-                                int index,
-                                Animation<double> animation,
-                              ) {
-                                final Task task = _visibleTasks[index];
-                                return _buildAnimatedTaskTile(task, animation);
-                              },
+            widget.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: widget.tasks.isEmpty
+                        ? Container(
+                            key: const ValueKey<String>('empty-state'),
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppSpacing.s24),
+                            decoration: BoxDecoration(
+                              color: surfaceColor,
+                              borderRadius: AppRadius.card,
+                              border: Border.all(color: AppColors.divider),
+                              boxShadow: AppShadows.soft,
                             ),
-                    ),
-            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.task_alt_rounded,
+                                  size: 44,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(height: AppSpacing.s12),
+                                Text(
+                                  'No tasks yet',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.s8),
+                                Text(
+                                  'Start your journey',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : AnimatedList(
+                            key: _listKey,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            initialItemCount: _visibleTasks.length,
+                            itemBuilder: (
+                              BuildContext context,
+                              int index,
+                              Animation<double> animation,
+                            ) {
+                              final Task task = _visibleTasks[index];
+                              return _buildAnimatedTaskTile(task, animation);
+                            },
+                          ),
+                  ),
           ],
         ),
       ),

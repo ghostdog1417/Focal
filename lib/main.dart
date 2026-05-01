@@ -31,7 +31,9 @@ class _FocalAppState extends State<FocalApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Focal',
-      theme: AppThemeBuilder.buildLightTheme(),
+      theme: AppThemeBuilder.buildDarkTheme(),
+      darkTheme: AppThemeBuilder.buildDarkTheme(),
+      themeMode: ThemeMode.dark,
       home: const SplashScreen(),
     );
   }
@@ -312,8 +314,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _onStrictFocusLockChanged(bool isLocked) {
     if (!mounted) return;
-    setState(() {
-      _isStrictFocusLocked = isLocked;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _isStrictFocusLocked == isLocked) return;
+      setState(() {
+        _isStrictFocusLocked = isLocked;
+      });
     });
   }
 
@@ -392,7 +397,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               });
             },
             backgroundColor: AppColors.surface,
-            indicatorColor: const Color(0xFFE3ECFF),
+            indicatorColor: AppColors.navIndicator,
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: const [
               NavigationDestination(

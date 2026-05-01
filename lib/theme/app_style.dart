@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 
-// Light Theme Colors
+// App Colors (configured for permanent dark mode)
 class AppColors {
-  static const Color primary = Color(0xFF5B8DEF);
-  static const Color background = Color(0xFFF8F9FB);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color accentGreen = Color(0xFF4CAF50);
-  static const Color textPrimary = Color(0xFF1C1C1E);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color divider = Color(0xFFE5E7EB);
-  static const Color progressCardStart = Color(0xFFEAF1FF);
-  static const Color progressCardEnd = Color(0xFFF3F7FF);
+  static const Color primary = Color(0xFF7AA2FF);
+  static const Color background = Color(0xFF0F1115);
+  static const Color surface = Color(0xFF171A21);
+  static const Color accentGreen = Color(0xFF55D187);
+  static const Color textPrimary = Color(0xFFF3F4F6);
+  static const Color textSecondary = Color(0xFF9CA3AF);
+  static const Color divider = Color(0xFF2A3140);
+  static const Color progressCardStart = Color(0xFF1B2334);
+  static const Color progressCardEnd = Color(0xFF151B28);
+  static const Color progressTrack = Color(0xFF2B3448);
+  static const Color navIndicator = Color(0xFF263149);
+  static const Color successSurface = Color(0xFF173227);
+  static const Color successBorder = Color(0xFF2D5D48);
+  static const Color successText = Color(0xFF8AE8B4);
+  static const Color mutedChip = Color(0xFF7E8BA6);
+  static const Color danger = Color(0xFFE06666);
+  static const Color buttonSecondary = Color(0xFF303C59);
 }
 
 // Category Colors
@@ -39,7 +47,7 @@ class AppRadius {
 class AppShadows {
   static const List<BoxShadow> soft = <BoxShadow>[
     BoxShadow(
-      color: Color(0x0D0F172A),
+      color: Color(0x52000000),
       blurRadius: 14,
       offset: Offset(0, 6),
     ),
